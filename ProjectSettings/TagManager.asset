@@ -6,6 +6,11 @@ TagManager:
   tags:
   - Enemy
   - GameBoard
+  - UI
+  - Pickup
+  - Level
+  - Kills
+  - Damage
   layers:
   - Default
   - TransparentFX
@@ -15,7 +20,7 @@ TagManager:
   - UI
   - 
   - 
-  - 
+  - Player
   - 
   - 
   - 
@@ -48,4 +53,7 @@ TagManager:
     locked: 0
   - name: Enemy
     uniqueID: 3298596729
+    locked: 0
+  - name: Blood
+    uniqueID: 1300594971
     locked: 0

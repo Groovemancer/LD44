@@ -58,6 +58,7 @@ public class Enemy : MonoBehaviour
     public void DamageEnemy(int damage)
     {
         health -= damage;
+        GameState.IncreaseTotalDamageDealt(damage);
         if (health <= 0)
         {
             DestroyEnemy();

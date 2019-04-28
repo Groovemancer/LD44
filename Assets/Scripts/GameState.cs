@@ -21,15 +21,20 @@ public class GameState : MonoBehaviour
 
     public List<int> KillsPerLevel = new List<int>();
 
+    public List<Upgrade> Upgrades = new List<Upgrade>();
+
     public int currentLevel = 1;
 
     public int blood = 100;
-    public int maxBlood = 100;
     public int initialBlood = 100;
+
+    public int bloodSpent = 0;
 
     public int damage = 1;
     public int initialDamage = 1;
     public int kills = 0;
+
+    public int totalDamageDealt = 0;
 
     public Color damageColor = Color.red;
     public Color healColor = Color.green;
@@ -72,6 +77,8 @@ public class GameState : MonoBehaviour
                 FindEnemy();
             }
         }
+
+        Upgrades.ForEach(u => u.Update());
     }
 
     private void Initialize()
@@ -84,13 +91,15 @@ public class GameState : MonoBehaviour
         Debug.Log("Reset game");
         FloatingTextController.Initialize();
 
+        gameState.Upgrades.Clear();
+
         gameState.damage = gameState.initialDamage;
         gameState.kills = 0;
         gameState.currentLevel = 1;
 
         gameState.gameOver = false;
         gameState.blood = gameState.initialBlood;
-        gameState.maxBlood = gameState.initialBlood;
+        gameState.bloodSpent = 0;
         FindPlayer();
         FindLevel();
         FindDamage();
@@ -99,6 +108,80 @@ public class GameState : MonoBehaviour
         UpdatePlayerLevel();
         UpdatePlayerDamage();
         UpdatePlayerKills();
+    }
+
+    public void UpdateInfo()
+    {
+        FindPlayer();
+        FindLevel();
+        FindDamage();
+        FindKills();
+        UpdatePlayerBlood();
+        UpdatePlayerLevel();
+        UpdatePlayerDamage();
+        UpdatePlayerKills();
+    }
+
+    public int GetClickDamage()
+    {
+        int result = damage;
+
+        UpgradeClickDamage upgrade = FindUpgradeOfType(typeof(UpgradeClickDamage)) as UpgradeClickDamage;
+
+        if (upgrade != null)
+        {
+            result += upgrade.GetClickDamageBonus();
+        }
+
+        return result;
+    }
+
+    public Upgrade FindUpgradeOfType(Type type)
+    {
+        foreach (Upgrade upgrade in Upgrades)
+        {
+            if (upgrade.GetType() == type)
+            {
+                return upgrade;
+            }
+        }
+
+        return null;
+    }
+
+    public bool PurchaseUpgrade(Upgrade upgrade)
+    {
+        if (blood >= upgrade.GetBloodCost())
+        {
+            blood = Math.Max(blood - upgrade.GetBloodCost(), 0);
+
+            bloodSpent += upgrade.GetBloodCost();
+
+            UpdateMaxBloodSpent();
+            UpdateTotalBloodSpent(upgrade.GetBloodCost());
+
+            UpdatePlayerBlood();
+
+            if (blood <= 0)
+            {
+                GameOver();
+            }
+
+            Upgrade u = FindUpgradeOfType(upgrade.GetType());
+
+            if (u != null)
+            {
+                u.SetLevel(upgrade.Level);
+            }
+            else
+            {
+                Upgrades.Add(upgrade);
+            }
+
+            UpdateInfo();
+            return true;
+        }
+        return false;
     }
 
     private void FindEnemy()
@@ -189,7 +272,17 @@ public class GameState : MonoBehaviour
             FloatingTextController.CreateFloatingText(damage.ToString(), gameState.playerObj.transform, gameState.damageColor, 44, false);
         }
 
-        gameState.blood = Math.Max(gameState.blood - damage, 0);
+        ModifyBlood(-damage);
+    }
+
+    public static void ModifyBlood(int amount)
+    {
+        gameState.blood = Math.Max(gameState.blood + amount, 0);
+
+        UpdateMaxBloodCollected();
+
+        if (amount > 0)
+            UpdateTotalBloodCollected(amount);
 
         UpdatePlayerBlood();
 
@@ -197,6 +290,113 @@ public class GameState : MonoBehaviour
         {
             GameOver();
         }
+    }
+
+    public static void UpdateMaxBloodCollected()
+    {
+        int maxBlood = 0;
+        if (PlayerPrefs.HasKey("MaxBlood"))
+        {
+            maxBlood = PlayerPrefs.GetInt("MaxBlood");
+        }
+        if (gameState.blood > maxBlood)
+        {
+            maxBlood = gameState.blood;
+        }
+        PlayerPrefs.SetInt("MaxBlood", maxBlood);
+    }
+
+    public static void UpdateTotalBloodCollected(int blood)
+    {
+        int totalBlood = 0;
+        if (PlayerPrefs.HasKey("TotalBlood"))
+        {
+            totalBlood = PlayerPrefs.GetInt("TotalBlood");
+        }
+        totalBlood += blood;
+        PlayerPrefs.SetInt("TotalBlood", totalBlood);
+    }
+
+    public static void UpdateMaxBloodSpent()
+    {
+        int maxBloodSpent = 0;
+        if (PlayerPrefs.HasKey("MaxBloodSpent"))
+        {
+            maxBloodSpent = PlayerPrefs.GetInt("MaxBloodSpent");
+        }
+        if (gameState.bloodSpent > maxBloodSpent)
+        {
+            maxBloodSpent = gameState.bloodSpent;
+        }
+        PlayerPrefs.SetInt("MaxBloodSpent", maxBloodSpent);
+    }
+
+    public static void UpdateTotalBloodSpent(int bloodSpent)
+    {
+        int totalBloodSpent = 0;
+        if (PlayerPrefs.HasKey("TotalBloodSpent"))
+        {
+            totalBloodSpent = PlayerPrefs.GetInt("TotalBloodSpent");
+        }
+        totalBloodSpent += bloodSpent;
+        PlayerPrefs.SetInt("TotalBloodSpent", totalBloodSpent);
+    }
+
+    public static void UpdateMaxKills()
+    {
+        int maxKills = 0;
+        if (PlayerPrefs.HasKey("MaxKills"))
+        {
+            maxKills = PlayerPrefs.GetInt("MaxKills");
+        }
+        if (gameState.kills > maxKills)
+        {
+            maxKills = gameState.kills;
+        }
+        PlayerPrefs.SetInt("MaxKills", maxKills);
+    }
+
+    public static void UpdateTotalKills()
+    {
+        int totalKills = 0;
+        if (PlayerPrefs.HasKey("TotalKills"))
+        {
+            totalKills = PlayerPrefs.GetInt("TotalKills");
+        }
+        totalKills++;
+        PlayerPrefs.SetInt("TotalKills", totalKills);
+    }
+
+    public static void UpdateMaxDamage()
+    {
+        int maxDamage = 0;
+        if (PlayerPrefs.HasKey("MaxDamage"))
+        {
+            maxDamage = PlayerPrefs.GetInt("MaxDamage");
+        }
+        if (gameState.totalDamageDealt > maxDamage)
+        {
+            maxDamage = gameState.totalDamageDealt;
+        }
+        PlayerPrefs.SetInt("MaxDamage", maxDamage);
+    }
+
+    public static void UpdateTotalDamage(int damage)
+    {
+        int totalDamage = 0;
+        if (PlayerPrefs.HasKey("TotalDamage"))
+        {
+            totalDamage = PlayerPrefs.GetInt("TotalDamage");
+        }
+        totalDamage += damage;
+        PlayerPrefs.SetInt("TotalDamage", totalDamage);
+    }
+
+    public static void IncreaseTotalDamageDealt(int damage)
+    {
+        gameState.totalDamageDealt += damage;
+        UpdateMaxDamage();
+        UpdateTotalDamage(damage);
     }
 
     public static void GameOver()
@@ -214,6 +414,7 @@ public class GameState : MonoBehaviour
         gameState.damageObj = null;
 
         gameState.gameOver = true;
+        UpdateMaxBloodCollected();
         Debug.Log("You lose!");
         SceneManager.LoadScene("TitleScreen");
     }
@@ -227,19 +428,16 @@ public class GameState : MonoBehaviour
             FloatingTextController.CreateFloatingText(blood.ToString(), gameState.playerObj.transform, gameState.healColor, 44, false);
         }
 
-        gameState.blood = Math.Max(gameState.blood + blood, 0);
-
-        UpdatePlayerBlood();
-
-        if (gameState.blood <= 0)
-        {
-            GameOver();
-        }
+        ModifyBlood(blood);
     }
 
     public static void IncreaseKillCount()
     {
         gameState.kills++;
+
+        UpdateMaxKills();
+        UpdateTotalKills();
+
         UpdatePlayerKills();
 
         if (gameState.currentLevel < gameState.KillsPerLevel.Count)
@@ -278,7 +476,7 @@ public class GameState : MonoBehaviour
         if (gameState.damageObj == null)
             return;
         Text text = gameState.damageObj.GetComponent<Text>();
-        text.text = gameState.damageText.Replace("{#}", gameState.damage.ToString());
+        text.text = gameState.damageText.Replace("{#}", gameState.GetClickDamage().ToString());
     }
 
     public static void UpdatePlayerKills()

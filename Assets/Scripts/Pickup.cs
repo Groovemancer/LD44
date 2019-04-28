@@ -12,6 +12,13 @@ public class Pickup : MonoBehaviour
     private float fallDuration = 0.5f;
     private Vector2 vel = Vector2.zero;
     private float elapsedTime = 0f;
+    private float evaporateTime = 10f;
+    private bool pickingUp = false;
+    private float pickUpRange = 0.5f;
+    private float pickUpSpeed = 1.5f;
+    private float pickUpAccel = 0.2f;
+
+    private Vector3 playerPos;
 
     void Start()
     {
@@ -19,6 +26,8 @@ public class Pickup : MonoBehaviour
         vel.y = speedY * Random.Range(1, 1.5f);
 
         elapsedTime = Random.Range(0, fallDuration * 0.3f);
+        playerPos = Camera.main.ScreenToWorldPoint(GameState.gameState.playerObj.transform.position);
+        playerPos.z = 0;
     }
 
     public void SetBloodValue(int value)
@@ -35,15 +44,48 @@ public class Pickup : MonoBehaviour
             transform.position = transform.position + (new Vector3(vel.x, vel.y, 0) * Time.deltaTime);
             vel.y -= gravity;
         }
+
+        if (pickingUp)
+        {
+            Vector3 direction = playerPos - transform.position;
+            
+            direction.z = 0;
+
+            transform.position = transform.position + (direction * pickUpSpeed * Time.deltaTime);
+            pickUpSpeed += pickUpAccel;
+
+            if (Vector3.Distance(transform.position, playerPos) <= pickUpRange)
+            {
+                CompletePickup();
+            }
+        }
+        else
+        {
+            if (elapsedTime >= evaporateTime)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+
+    public void PickupItem()
+    {
+        PickupItem(1.5f, 0.2f);
     }
 
     // Update is called once per frame
-    public void PickupItem()
+    public void PickupItem(float pickUpSpeed, float pickUpAccel)
     {
         if (elapsedTime <= fallDuration)
             return;
 
-        Debug.Log("Collect Blood: " + bloodValue);
+        this.pickUpSpeed = pickUpSpeed;
+        this.pickUpAccel = pickUpAccel;
+        pickingUp = true;
+    }
+
+    private void CompletePickup()
+    {
         GameState.HealPlayer(bloodValue);
         Destroy(gameObject);
     }

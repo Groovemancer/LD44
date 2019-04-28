@@ -61,7 +61,7 @@ public class Clicker : MonoBehaviour
         {
             if (goTargetHit != null && goTargetHit.tag == "Enemy")
             {
-                int damage = GameState.gameState.damage;
+                int damage = GameState.gameState.GetClickDamage();
                 //Debug.Log("ENEMY HIT!");
                 goTargetHit.SendMessage("DamageEnemy", damage, SendMessageOptions.DontRequireReceiver);
                 FloatingTextController.CreateFloatingText(damage.ToString(), goTargetHit.transform, Color.white);

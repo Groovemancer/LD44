@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class SetHighScore : MonoBehaviour
 {
     string scoreBoardText = "Max Blood Collected: {0}\nTotal Blood Collected: {1}\nMax Blood Spent: {2}\nTotal Blood Spent: {3}\n" +
-        "Max Kills: {4}\nTotal Kills: {5}\nMax Damage Dealt: {6}\nTotal Damage Dealt: {7}\n";
+        "Max Kills: {4}\nTotal Kills: {5}\nMax Damage Dealt: {6}\nTotal Damage Dealt: {7}";
     // Start is called before the first frame update
     void Start()
     {

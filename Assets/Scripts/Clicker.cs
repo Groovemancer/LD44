@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Clicker : MonoBehaviour
 {
+    public GameObject attackEffect;
+
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
@@ -61,10 +63,27 @@ public class Clicker : MonoBehaviour
         {
             if (goTargetHit != null && goTargetHit.tag == "Enemy")
             {
+                if (attackEffect != null)
+                {
+                    Instantiate(attackEffect, goTargetHit.transform.position, Quaternion.identity);
+                }
+
                 int damage = GameState.gameState.GetClickDamage();
+                bool isCrit = GameState.gameState.IsHitACrit();
+
+                Color color = Color.white;
+                int fontSize = 32;
+
+                if (isCrit)
+                {
+                    color = Color.red;
+                    fontSize = 44;
+                    damage = (int)(damage * GameState.gameState.GetCritRate() / 100f);
+                }
+
                 //Debug.Log("ENEMY HIT!");
                 goTargetHit.SendMessage("DamageEnemy", damage, SendMessageOptions.DontRequireReceiver);
-                FloatingTextController.CreateFloatingText(damage.ToString(), goTargetHit.transform, Color.white);
+                FloatingTextController.CreateFloatingText(damage.ToString(), goTargetHit.transform, color, fontSize);
             }
             else if (goTargetHit.tag == "GameBoard")
             {

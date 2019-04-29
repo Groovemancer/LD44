@@ -136,6 +136,34 @@ public class GameState : MonoBehaviour
         return result;
     }
 
+    public bool IsHitACrit()
+    {
+        float critChance = 0;
+
+        UpgradeClickCrit upgrade = FindUpgradeOfType(typeof(UpgradeClickCrit)) as UpgradeClickCrit;
+
+        if (upgrade != null)
+        {
+            critChance += upgrade.GetClickCritChance();
+        }
+
+        return UnityEngine.Random.Range(0, 100f) <= critChance;
+    }
+
+    public float GetCritRate()
+    {
+        float result = 0;
+
+        UpgradeClickCrit upgrade = FindUpgradeOfType(typeof(UpgradeClickCrit)) as UpgradeClickCrit;
+
+        if (upgrade != null)
+        {
+            result += upgrade.GetClickCritRate();
+        }
+
+        return result;
+    }
+
     public Upgrade FindUpgradeOfType(Type type)
     {
         foreach (Upgrade upgrade in Upgrades)

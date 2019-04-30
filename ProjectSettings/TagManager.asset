@@ -57,6 +57,9 @@ TagManager:
   - name: Blood
     uniqueID: 1300594971
     locked: 0
+  - name: Fog
+    uniqueID: 526627195
+    locked: 0
   - name: Effect
     uniqueID: 1466501651
     locked: 0
